@@ -35,7 +35,7 @@ async function run() {
         //--------------------------------------------------------
         var ws: string = tl.getPathInput('xcWorkspacePath', false, false);
         if (tl.filePathSupplied('xcWorkspacePath')) {
-            var workspaceMatches = tl.findMatch(workingDir, ws);
+            var workspaceMatches = tl.findMatch(workingDir, ws, { followSymbolicLinks: false, followSpecifiedSymbolicLink: false });
             tl.debug("Found " + workspaceMatches.length + ' workspaces matching.');
 
             if (workspaceMatches.length > 0) {
@@ -229,7 +229,8 @@ async function run() {
                 //check for pattern in testResultsFiles
                 if (testResultsFiles.indexOf('*') >= 0 || testResultsFiles.indexOf('?') >= 0) {
                     tl.debug('Pattern found in testResultsFiles parameter');
-                    var matchingTestResultsFiles: string[] = tl.findMatch(workingDir, testResultsFiles, null, { matchBase: true });
+                    var matchingTestResultsFiles: string[] = tl.findMatch(workingDir, testResultsFiles,
+                        { followSymbolicLinks: false, followSpecifiedSymbolicLink: false }, { matchBase: true });
                 }
                 else {
                     tl.debug('No pattern found in testResultsFiles parameter');
@@ -270,7 +271,8 @@ async function run() {
                 tl.debug('Packaging apps using xcrun.');
                 var buildOutputPath: string = tl.resolve(outPath, 'build.sym');
                 tl.debug('buildOutputPath: ' + buildOutputPath);
-                var appFolders: string[] = tl.findMatch(buildOutputPath, '**/*.app');
+                var appFolders: string[] = tl.findMatch(buildOutputPath, '**/*.app', 
+                    { followSpecifiedSymbolicLink: false, followSymbolicLinks: false });
                 if (appFolders) {
                     tl.debug(appFolders.length + ' apps found for packaging.');
                     var xcrunPath: string = tl.which('xcrun', true);
@@ -327,7 +329,8 @@ async function run() {
                 }
                 await xcodeArchive.exec();
 
-                var archiveFolders: string[] = tl.findMatch(archiveFolderRoot, '**/*.xcarchive');
+                var archiveFolders: string[] = tl.findMatch(archiveFolderRoot, '**/*.xcarchive', 
+                    { followSpecifiedSymbolicLink: false, followSymbolicLinks: false });
                 if (archiveFolders && archiveFolders.length > 0) {
                     tl.debug(archiveFolders.length + ' archives found for exporting.');
 
@@ -341,7 +344,8 @@ async function run() {
                         // Automatically try to detect the export-method to use from the provisioning profile
                         // embedded in the .xcarchive file
                         var archiveToCheck: string = archiveFolders[0];
-                        var embeddedProvProfile: string[] = tl.findMatch(archiveToCheck, '**/embedded.mobileprovision');
+                        var embeddedProvProfile: string[] = tl.findMatch(archiveToCheck, '**/embedded.mobileprovision', 
+                            { followSymbolicLinks: false, followSpecifiedSymbolicLink: false });
                         if (embeddedProvProfile && embeddedProvProfile.length > 0) {
                             tl.debug('embedded prov profile = ' + embeddedProvProfile);
                             exportMethod = await sign.getProvisioningProfileType(embeddedProvProfile[0]);
